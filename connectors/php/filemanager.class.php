@@ -110,7 +110,7 @@ class Filemanager {
 	}
 
 	// allow Filemanager to be used with dynamic folders
-	public function setFileRoot($path) {
+	public function setFileRoot($path, $mkdir = false) {
 
 		// Paths are bit complex to handle - kind of nightmare actually ....
 		// 3 parts are availables
@@ -126,9 +126,16 @@ class Filemanager {
 		}
 		
 		// necessary for retrieving path when set dynamically with $fm->setFileRoot() method
-		$this->dynamic_fileroot = str_replace($_SERVER['DOCUMENT_ROOT'], '', $this->doc_root);
+		// https://github.com/simogeo/Filemanager/issues/258 @todo to explore deeper
+		$this->dynamic_fileroot = str_replace("//","/",str_replace($_SERVER['DOCUMENT_ROOT'], '', $this->doc_root));
 		$this->path_to_files = $this->doc_root;
 		$this->separator = basename($this->doc_root);
+		
+		// do we create folder ?
+		if($mkdir && !file_exists($this->doc_root)) {
+			mkdir($this->doc_root, 0755, true);
+			$this->__log(__METHOD__ . ' creating  ' . $this->doc_root. ' folder through mkdir()');
+		}
 		
 		$this->__log(__METHOD__ . ' $this->doc_root value overwritten : ' . $this->doc_root);
 		$this->__log(__METHOD__ . ' $this->dynamic_fileroot value ' . $this->dynamic_fileroot);
@@ -1168,7 +1175,7 @@ private function is_valid_path($path) {
 	$this->__log('substr path_to_files : ' . substr(realpath($path) . DIRECTORY_SEPARATOR, 0, strlen($this->path_to_files)));
 	$this->__log('path_to_files : ' . realpath($this->path_to_files) . DIRECTORY_SEPARATOR);
 	
-	return substr(realpath($path) . DIRECTORY_SEPARATOR, 0, strlen($this->path_to_files)) == (realpath($this->path_to_files) . DIRECTORY_SEPARATOR);
+	return (substr(realpath($path) . DIRECTORY_SEPARATOR, 0, strlen(realpath($this->path_to_files))) . DIRECTORY_SEPARATOR) == (realpath($this->path_to_files) . DIRECTORY_SEPARATOR);
 	
 	
 }
