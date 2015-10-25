@@ -1,4 +1,23 @@
-﻿<!DOCTYPE html>
+<?php
+  if (!isset($_SESSION)) session_start();
+
+  // Include Maestrano required libraries
+  require_once 'vendor/maestrano/maestrano-php/lib/Maestrano.php';
+  Maestrano::configure('maestrano.json');
+
+  // Check session validity and trigger SSO if not
+  if(Maestrano::sso()->isSsoEnabled()) {
+    $mnoSession = new Maestrano_Sso_Session($_SESSION);
+    if (!$mnoSession->isValid()) {
+      $_SESSION['mno_previous_uri'] = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+      $req = new Maestrano_Saml_Request($_GET);
+      header('Location: ' . $req->getRedirectUrl());
+      exit;
+    }
+  }
+?>
+
+<!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
